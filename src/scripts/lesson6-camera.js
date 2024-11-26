@@ -34,7 +34,7 @@ scene.add(mesh)
 
 const mesh1 = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1, 5, 5, 5),
-    new THREE.MeshBasicMaterial({ color: '0xECA400' })
+    new THREE.MeshBasicMaterial({ color: 0xECA400 })
 )
 
 // mesh1.position.x = 4
