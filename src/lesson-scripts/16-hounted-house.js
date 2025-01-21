@@ -75,6 +75,7 @@ const bush1 = new THREE.Mesh(
 
 
 bush1.scale.set(0.5, 0.5, 0.5)
+// or bush1.scale.setScalar(0.5)
 bush1.position.set(0.8, 0.2, 2.2)
 
 
@@ -107,6 +108,37 @@ bush4.position.set(-1.3, 0.1, 2.4)
 
 bushGroup.add(bush1, bush2, bush3, bush4)
 scene.add(bushGroup)
+
+
+// Graves
+
+const graveGeometry = new THREE.BoxGeometry(1, 1.5, 0.5)
+const graveMaterial = new THREE.MeshStandardMaterial()
+
+
+for (let i = 0; i < 30; i++) {
+    const grave = new THREE.Mesh(
+        graveGeometry,
+        graveMaterial
+    )
+    grave.rotation.z = Math.random() - 0.5
+
+    const angle = Math.random() * Math.PI * 2
+    const radiant = Math.floor(Math.random() * (9 - 4)) + 4
+
+    // by assigning the same number to sin and cos, it will create the circle movement
+    grave.position.z = Math.sin(angle) * radiant
+    grave.position.x = Math.cos(angle) * radiant
+
+    // check again!!
+    grave.rotation.y = (Math.random() - 0.5) * 0.4
+    grave.rotation.x = (Math.random() - 0.5) * 0.4 // instead of Math.random() * 0.4 // 0 - 0.39999, by subtracting 0.5, return value gets smaller
+    grave.rotation.z = (Math.random() - 0.5) * 0.4
+
+
+    scene.add(grave)
+}
+
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
     new THREE.MeshStandardMaterial()
