@@ -15,6 +15,27 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+
+
+
+/* 
+  Texture
+*/
+
+// one textureLoader can handle all texture for one project
+const textureLoader = new THREE.TextureLoader()
+
+// floor texture
+
+const floorAlphaTexture = textureLoader.load('/textures/floor/alpha.webp')
+const floorARMTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_arm_1k.webp')
+const floorDiffTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_diff_1k.webp')
+const floorNormalTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_nor_gl_1k.webp')
+
+floorDiffTexture.colorSpace = THREE.SRGBColorSpace
+
+
+
 /**
  * House
  */
@@ -115,6 +136,7 @@ scene.add(bushGroup)
 const graveGeometry = new THREE.BoxGeometry(1, 1.5, 0.5)
 const graveMaterial = new THREE.MeshStandardMaterial()
 
+const graveGroup = new THREE.Group()
 
 for (let i = 0; i < 30; i++) {
     const grave = new THREE.Mesh(
@@ -124,24 +146,36 @@ for (let i = 0; i < 30; i++) {
     grave.rotation.z = Math.random() - 0.5
 
     const angle = Math.random() * Math.PI * 2
-    const radiant = Math.floor(Math.random() * (9 - 4)) + 4
+    const radiant = 2.5 + Math.random() * 4 // +2.5 means radius will be always more than 2.5 (this is half width of the house[2] and extra space) + random number of 0 - 3.9999 
 
-    // by assigning the same number to sin and cos, it will create the circle movement
+    // In trigonometry, by assigning the same angle to sin and cos, it will be x and y coordinates of circular positioning https://en.wikipedia.org/wiki/Sine_and_cosine
     grave.position.z = Math.sin(angle) * radiant
     grave.position.x = Math.cos(angle) * radiant
 
     // check again!!
-    grave.rotation.y = (Math.random() - 0.5) * 0.4
-    grave.rotation.x = (Math.random() - 0.5) * 0.4 // instead of Math.random() * 0.4 // 0 - 0.39999, by subtracting 0.5, return value gets smaller
+    grave.rotation.y = Math.random() * 0.4 // between 0(inclusive) - 4(exclusive)
+    grave.rotation.x = (Math.random() - 0.5) * 0.4 // Math.random() - 0.5 will return -0.5(inclusive) to 0.5(exclusive), by multiplying by 0.4, it will return min -0.2 (-0.5 * 0.4) to max will be closed to 0.2 (0.4999... * 0.4)
     grave.rotation.z = (Math.random() - 0.5) * 0.4
 
 
-    scene.add(grave)
+    graveGroup.add(grave)
 }
+
+scene.add(graveGroup)
 
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial(
+        {
+            alphaMap: floorAlphaTexture,
+            transparent: true,
+            map: floorDiffTexture,
+            normalMap: floorNormalTexture,
+            roughnessMap: floorARMTexture,
+            metalnessMap: floorARMTexture,
+            aoMap: floorARMTexture,
+        }
+    )
 )
 
 ground.rotation.x = Math.PI * - 0.5
