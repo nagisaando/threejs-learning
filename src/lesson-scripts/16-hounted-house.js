@@ -71,6 +71,50 @@ const wallNormalTexture = textureLoader.load('/textures/wall/castle_brick_broken
 
 wallDiffTexture.colorSpace = THREE.SRGBColorSpace
 
+
+// roof texture 
+
+
+// const roofDiffTexture = textureLoader.load('textures/door/color.webp')
+const roofDiffTexture = textureLoader.load('/textures/roof/roof_slates_02_1k/roof_slates_02_diff_1k.webp')
+const roofARMTexture = textureLoader.load('/textures/roof/roof_slates_02_1k/roof_slates_02_arm_1k.webp')
+const roofNormalTexture = textureLoader.load('/textures/roof/roof_slates_02_1k/roof_slates_02_nor_gl_1k.webp')
+
+roofDiffTexture.colorSpace = THREE.SRGBColorSpace
+
+roofDiffTexture.repeat.set(3, 1)
+roofARMTexture.repeat.set(3, 1)
+roofNormalTexture.repeat.set(3, 1)
+
+
+roofDiffTexture.wrapS = THREE.RepeatWrapping // this is necessary to make the texture repeat correctly
+// roofDiffTexture.wrapT = THREE.RepeatWrapping // we don't need to specify for T (y coordination) since the texture is not repeated in y coordination
+
+roofARMTexture.wrapS = THREE.RepeatWrapping
+roofNormalTexture.wrapS = THREE.RepeatWrapping
+
+
+// bush texture 
+
+const bushDiffTexture = textureLoader.load('/textures/bush/leaves_forest_ground_1k/leaves_forest_ground_diff_1k.webp')
+const bushARMTexture = textureLoader.load('/textures/bush/leaves_forest_ground_1k/leaves_forest_ground_arm_1k.webp')
+const bushNormalTexture = textureLoader.load('/textures/bush/leaves_forest_ground_1k/leaves_forest_ground_nor_gl_1k.webp')
+
+bushDiffTexture.colorSpace = THREE.SRGBColorSpace
+
+bushDiffTexture.repeat.set(2, 1)
+bushARMTexture.repeat.set(2, 1)
+bushNormalTexture.repeat.set(2, 1)
+
+bushDiffTexture.wrapS = THREE.RepeatWrapping
+bushDiffTexture.wrapT = THREE.RepeatWrapping
+
+
+bushARMTexture.wrapS = THREE.RepeatWrapping
+bushARMTexture.wrapT = THREE.RepeatWrapping
+
+bushNormalTexture.wrapS = THREE.RepeatWrapping
+bushNormalTexture.wrapT = THREE.RepeatWrapping
 /**
  * House
  */
@@ -100,7 +144,15 @@ wall.position.y = 2.5 / 2
 
 const roof = new THREE.Mesh(
     new THREE.ConeGeometry(3.5, 1.5, 4),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial({
+        // texture is skewed and lighting acts weird, this is caused by normal and uv of cone geometry (three.js can calculate normal with "computeVertexNormals" from BufferGeometry)
+        // as a solution, we have to create geometry attribute by myself, or we can create model using 3d software such as Blender (aka UV unwrapping)
+        map: roofDiffTexture,
+        metalnessMap: roofARMTexture,
+        roughnessMap: roofARMTexture,
+        aoMap: roofARMTexture,
+        normalMap: roofNormalTexture
+    })
 )
 roof.rotation.y = Math.PI * 0.25 // 1/8 rotation
 
@@ -130,7 +182,15 @@ scene.add(houseGroup)
 const bushGroup = new THREE.Group()
 
 const bushGeometry = new THREE.SphereGeometry(1, 16, 16)
-const bushMaterial = new THREE.MeshStandardMaterial()
+const bushMaterial = new THREE.MeshStandardMaterial({
+    color: '#ccffcc',
+    map: bushDiffTexture,
+    metalnessMap: bushARMTexture,
+    roughnessMap: bushARMTexture,
+    aoMap: bushARMTexture,
+    normalMap: bushNormalTexture
+})
+
 
 const bush1 = new THREE.Mesh(
     bushGeometry,
@@ -142,6 +202,9 @@ bush1.scale.set(0.5, 0.5, 0.5)
 // or bush1.scale.setScalar(0.5)
 bush1.position.set(0.8, 0.2, 2.2)
 
+// because of uv unwrapping of sphere geometry, the texture looks weird
+// this rotation will hide the texture issue :) 
+bush1.rotation.x = -0.75
 
 const bush2 = new THREE.Mesh(
     bushGeometry,
@@ -150,7 +213,7 @@ const bush2 = new THREE.Mesh(
 
 bush2.scale.set(0.3, 0.3, 0.3)
 bush2.position.set(1.3, 0, 2.2)
-
+bush2.rotation.x = -0.75
 
 const bush3 = new THREE.Mesh(
     bushGeometry,
@@ -158,7 +221,7 @@ const bush3 = new THREE.Mesh(
 )
 bush3.scale.set(0.4, 0.4, 0.4)
 bush3.position.set(-0.8, 0.2, 2.4)
-
+bush3.rotation.x = -0.75
 
 const bush4 = new THREE.Mesh(
     bushGeometry,
@@ -167,7 +230,7 @@ const bush4 = new THREE.Mesh(
 
 bush4.scale.set(0.2, 0.2, 0.2)
 bush4.position.set(-1.3, 0.1, 2.4)
-
+bush4.rotation.x = -0.75
 
 
 bushGroup.add(bush1, bush2, bush3, bush4)
@@ -189,7 +252,7 @@ for (let i = 0; i < 30; i++) {
     grave.rotation.z = Math.random() - 0.5
 
     const angle = Math.random() * Math.PI * 2
-    const radiant = 2.5 + Math.random() * 4 // +2.5 means radius will be always more than 2.5 (this is half width of the house[2] and extra space) + random number of 0 - 3.9999 
+    const radiant = 4 + Math.random() * 4 // +4 means radius will be always more than 4 (this is half width of the house[2] and extra space) + random number of 0 - 3.9999 
 
     // In trigonometry, by assigning the same angle to sin and cos, it will be x and y coordinates of circular positioning https://en.wikipedia.org/wiki/Sine_and_cosine
     grave.position.z = Math.sin(angle) * radiant
