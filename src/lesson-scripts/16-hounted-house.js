@@ -124,6 +124,18 @@ const graveNormalTexture = textureLoader.load('/textures/grave/plastered_stone_w
 
 graveDiffTexture.colorSpace = THREE.SRGBColorSpace
 
+// door texture 
+
+const doorAlphaTexture = textureLoader.load('/textures/door/alpha.webp')
+const doorDiffTexture = textureLoader.load('/textures/door/color.webp')
+const doorAOTexture = textureLoader.load('/textures/door/ambientOcclusion.webp')
+const doorMetalnessTexture = textureLoader.load('/textures/door/metalness.webp')
+const doorRoughnessTexture = textureLoader.load('/textures/door/roughness.webp')
+const doorNormalTexture = textureLoader.load('/textures/door/normal.webp')
+const doorDisplacementTexture = textureLoader.load('/textures/door/height.webp')
+
+doorDiffTexture.colorSpace = THREE.SRGBColorSpace
+
 /**
  * House
  */
@@ -171,11 +183,30 @@ roof.position.y = 2.5 + 1.5 / 2
 // Door
 
 const door = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.2, 2.2),
+    new THREE.PlaneGeometry(2.2, 2.2, 100, 100),
     new THREE.MeshStandardMaterial({
-        color: 'orange'
+        alphaMap: doorAlphaTexture,
+        transparent: true,
+        map: doorDiffTexture,
+        aoMap: doorAOTexture,
+        metalnessMap: doorMetalnessTexture,
+        roughnessMap: doorRoughnessTexture,
+        normalMap: doorNormalTexture,
+        displacementMap: doorDisplacementTexture,
+        displacementScale: 0.1,
+        displacementBias: -0.03
     })
 )
+
+gui.add(door.material, 'displacementBias')
+    .min(-2)
+    .max(5)
+    .step(0.01)
+
+gui.add(door.material, 'displacementScale')
+    .min(-2)
+    .max(5)
+    .step(0.01)
 
 door.position.y = 1 // since door texture has some space in bottom, we can not lift up completely
 door.position.z = 4 / 2 + 0.01
