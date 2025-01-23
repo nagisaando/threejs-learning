@@ -31,10 +31,45 @@ const floorAlphaTexture = textureLoader.load('/textures/floor/alpha.webp')
 const floorARMTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_arm_1k.webp')
 const floorDiffTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_diff_1k.webp')
 const floorNormalTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_nor_gl_1k.webp')
-
+const floorDisplacementTexture = textureLoader.load('/textures/floor/coast_sand_rocks_02_1k/coast_sand_rocks_02_disp_1k.webp')
+// three.js uses linear workflow for rendering, meaning all colors are converted to linear color spacing for accurate light calculation. 
+// but many textures like .jpg, .png are encoded in sRBG color space by default. For three.js to handle this type of textures correctly,
+// we have to explicitly say to three.js about it otherwise the color gets too light/ too dark because three.js would treat them as if it were already in linear space 
 floorDiffTexture.colorSpace = THREE.SRGBColorSpace
 
+// floor texture is too big so we will repeat
+// repeat is vector 2 (2d coordinates) and can access only x and y
 
+floorDiffTexture.repeat.set(8, 8)
+// or
+// floorDiffTexture.repeat.x = 8
+// floorDiffTexture.repeat.y = 8
+
+
+floorARMTexture.repeat.set(8, 8)
+floorNormalTexture.repeat.set(8, 8)
+floorDisplacementTexture.repeat.set(8, 8)
+
+floorDiffTexture.wrapS = THREE.RepeatWrapping // this is necessary to make the texture repeat correctly
+floorDiffTexture.wrapT = THREE.RepeatWrapping
+
+floorARMTexture.wrapS = THREE.RepeatWrapping
+floorARMTexture.wrapT = THREE.RepeatWrapping
+
+floorNormalTexture.wrapS = THREE.RepeatWrapping
+floorNormalTexture.wrapT = THREE.RepeatWrapping
+
+floorDisplacementTexture.wrapS = THREE.RepeatWrapping
+floorDisplacementTexture.wrapT = THREE.RepeatWrapping
+
+
+// wall texture 
+
+const wallDiffTexture = textureLoader.load('/textures/wall/castle_brick_broken_06_1k/castle_brick_broken_06_diff_1k.webp')
+const wallARMTexture = textureLoader.load('/textures/wall/castle_brick_broken_06_1k/castle_brick_broken_06_arm_1k.webp')
+const wallNormalTexture = textureLoader.load('/textures/wall/castle_brick_broken_06_1k/castle_brick_broken_06_nor_gl_1k.webp')
+
+wallDiffTexture.colorSpace = THREE.SRGBColorSpace
 
 /**
  * House
@@ -47,7 +82,15 @@ const houseGroup = new THREE.Group()
 
 const wall = new THREE.Mesh(
     new THREE.BoxGeometry(4, 2.5, 4),
-    new THREE.MeshStandardMaterial()
+    new THREE.MeshStandardMaterial(
+        {
+            map: wallDiffTexture,
+            aoMap: wallARMTexture,
+            metalnessMap: wallARMTexture,
+            roughnessMap: wallARMTexture,
+            normalMap: wallNormalTexture
+        }
+    )
 )
 
 wall.position.y = 2.5 / 2
@@ -164,19 +207,33 @@ for (let i = 0; i < 30; i++) {
 scene.add(graveGroup)
 
 const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(20, 20),
+    new THREE.PlaneGeometry(20, 20, 100, 100), // we have to increase width/height segment param (3rd and 4th param) for the displacement map
     new THREE.MeshStandardMaterial(
         {
             alphaMap: floorAlphaTexture,
-            transparent: true,
+            // transparent: true,
             map: floorDiffTexture,
             normalMap: floorNormalTexture,
             roughnessMap: floorARMTexture,
             metalnessMap: floorARMTexture,
             aoMap: floorARMTexture,
+            displacementMap: floorDisplacementTexture,
+            displacementScale: 0.3, // to change the strength of displacement effect
+            displacementBias: -0.15 // this is to offset the whole displacement (move the texture down)
         }
     )
 )
+
+
+gui.add(ground.material, 'displacementBias')
+    .min(-2)
+    .max(5)
+    .step(0.01)
+
+gui.add(ground.material, 'displacementScale')
+    .min(-2)
+    .max(5)
+    .step(0.01)
 
 ground.rotation.x = Math.PI * - 0.5
 scene.add(ground)
