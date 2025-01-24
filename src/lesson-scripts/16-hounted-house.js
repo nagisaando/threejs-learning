@@ -378,6 +378,7 @@ directionalLight.position.set(3, 2, -8)
 scene.add(directionalLight)
 
 const pointLight = new THREE.PointLight('#ff7d46', 5)
+
 pointLight.position.set(0, 2.5, 2.1)
 scene.add(pointLight)
 
@@ -436,6 +437,43 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+
+/**
+ * Shadows
+ */
+
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+pointLight.castShadow = true // if casting shadow is not changing screen much, we could remove for optimization
+directionalLight.castShadow = true
+ghost1.castShadow = true
+ghost2.castShadow = true
+ghost3.castShadow = true
+
+roof.receiveShadow = true
+roof.castShadow = true
+
+wall.receiveShadow = true
+wall.castShadow = true
+
+bush1.receiveShadow = true
+bush2.receiveShadow = true
+bush3.receiveShadow = true
+bush4.receiveShadow = true
+
+bush1.castShadow = true
+bush2.castShadow = true
+bush3.castShadow = true
+bush4.castShadow = true
+
+graveGroup.children.forEach(grave => {
+    grave.receiveShadow = true
+    grave.castShadow = true
+})
+ground.receiveShadow = true
+
 
 /**
  * Animate
