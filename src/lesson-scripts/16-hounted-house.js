@@ -384,6 +384,14 @@ scene.add(pointLight)
 const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5)
 scene.add(pointLightHelper)
 
+
+// Ghost
+
+const ghost1 = new THREE.PointLight('#53D8FB', 6)
+const ghost2 = new THREE.PointLight('#3772FF', 6)
+const ghost3 = new THREE.PointLight('#4B8F8C', 6)
+
+scene.add(ghost1, ghost2, ghost3)
 /**
  * Sizes
  */
@@ -434,10 +442,51 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  */
 const timer = new Timer()
 
+let ghost1Radius = 5
+let up = false
+
+function changeRadiusOfGhost1() {
+    if (up) {
+        ghost1Radius += 0.01
+        if (ghost1Radius >= 6) {
+            up = false
+        }
+    } else {
+        ghost1Radius -= 0.01
+        if (ghost1Radius <= 4) {
+            up = true
+        }
+    }
+}
+
+const testGhost = new THREE.Mesh(
+    bushGeometry,
+    new THREE.MeshStandardMaterial()
+)
+
+// scene.add(testGhost)
 const tick = () => {
     // Timer
     timer.update()
     const elapsedTime = timer.getElapsed()
+
+
+    changeRadiusOfGhost1()
+    ghost1.position.set(
+        Math.sin(elapsedTime * 0.5) * ghost1Radius,
+        Math.sin(elapsedTime) * Math.sin(elapsedTime * 1.1) * Math.sin(elapsedTime * 1.4) * 2, // this will create as if ghost moves vertically irregularly
+        Math.cos(elapsedTime * 0.5) * ghost1Radius)
+
+
+    ghost2.position.x = Math.sin(-elapsedTime * 0.2) * 5 // adding minus will make circle otherwise
+    ghost2.position.z = Math.cos(-elapsedTime * 0.2) * 5// adding minus will make circle otherwise
+    ghost2.position.y = Math.sin(elapsedTime) * Math.sin(elapsedTime * 1.4) * Math.sin(elapsedTime * 4)
+
+
+
+    ghost3.position.x = Math.sin(elapsedTime * 0.1) * 7 // adding minus will make circle otherwise
+    ghost3.position.z = Math.cos(elapsedTime * 0.1) * 7// adding minus will make circle otherwise
+    ghost3.position.y = Math.sin(elapsedTime) * Math.sin(elapsedTime * 1.4) * Math.sin(elapsedTime * 4)
 
     // Update controls
     controls.update()
