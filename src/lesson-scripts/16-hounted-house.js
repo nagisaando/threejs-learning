@@ -217,6 +217,21 @@ door.position.z = 4 / 2 + 0.01
 houseGroup.add(wall, roof, door)
 scene.add(houseGroup)
 
+
+// door lamp
+const doorLamp = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.07, 0.07),
+    new THREE.MeshStandardMaterial(
+        {
+            emissiveIntensity: 7,
+            emissive: '#ff7d46'
+        }
+    )
+)
+
+doorLamp.position.set(0, 2.5, 2.1)
+houseGroup.add(doorLamp)
+
 // Bushes
 
 const bushGroup = new THREE.Group()
@@ -346,17 +361,28 @@ gui.add(ground.material, 'displacementScale')
 
 ground.rotation.x = Math.PI * - 0.5
 scene.add(ground)
+
+
+
+
 /**
  * Lights
  */
 // Ambient light
-const ambientLight = new THREE.AmbientLight('#ffffff', 0.5)
+const ambientLight = new THREE.AmbientLight('#86cdff', 0.275)
 scene.add(ambientLight)
 
 // Directional light
-const directionalLight = new THREE.DirectionalLight('#ffffff', 1.5)
+const directionalLight = new THREE.DirectionalLight('#86cdff', 1)
 directionalLight.position.set(3, 2, -8)
 scene.add(directionalLight)
+
+const pointLight = new THREE.PointLight('#ff7d46', 5)
+pointLight.position.set(0, 2.5, 2.1)
+scene.add(pointLight)
+
+const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5)
+scene.add(pointLightHelper)
 
 /**
  * Sizes
