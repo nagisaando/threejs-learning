@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Timer } from 'three/addons/misc/Timer.js'
 import GUI from 'lil-gui'
-
+import { Sky } from 'three/examples/jsm/Addons.js'
 /**
  * Base
  */
@@ -377,13 +377,14 @@ const directionalLight = new THREE.DirectionalLight('#86cdff', 1)
 directionalLight.position.set(3, 2, -8)
 scene.add(directionalLight)
 
+
 const pointLight = new THREE.PointLight('#ff7d46', 5)
 
 pointLight.position.set(0, 2.5, 2.1)
 scene.add(pointLight)
 
-const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5)
-scene.add(pointLightHelper)
+// const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5)
+// scene.add(pointLightHelper)
 
 
 // Ghost
@@ -475,6 +476,73 @@ graveGroup.children.forEach(grave => {
 ground.receiveShadow = true
 
 
+
+
+// Mapping 
+// it is important to keep the map size as power of 2 
+directionalLight.shadow.mapSize.width = 256
+directionalLight.shadow.mapSize.height = 256
+
+directionalLight.shadow.camera.right = 10
+directionalLight.shadow.camera.left = -10
+// top and bottom are not necessary but square camera works better
+directionalLight.shadow.camera.top = 10
+directionalLight.shadow.camera.bottom = -10
+
+
+directionalLight.shadow.camera.near = 1
+directionalLight.shadow.camera.far = 20
+
+// const directionalLightCameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+
+// scene.add(directionalLightCameraHelper)
+
+// =======================
+
+// const ghostCameraHelper = new THREE.CameraHelper(ghost1.shadow.camera)
+// scene.add(ghostCameraHelper)
+
+ghost1.shadow.mapSize.set(256, 256)
+ghost1.shadow.camera.far = 10
+
+ghost2.shadow.mapSize.set(256, 256)
+ghost2.shadow.camera.far = 10
+
+ghost3.shadow.mapSize.set(256, 256)
+ghost3.shadow.camera.far = 10
+
+
+/**
+ * Sky
+ */
+// we will learn more in shader lesson
+
+const sky = new Sky() // it is technically box geometry on  mesh
+sky.scale.set(100, 100, 100) // without this, sky looks small cube
+// or sky.setScalar(100)
+scene.add(sky)
+
+sky.material.uniforms['turbidity'].value = 10
+sky.material.uniforms['rayleigh'].value = 3
+sky.material.uniforms['mieCoefficient'].value = 0.1
+sky.material.uniforms['mieDirectionalG'].value = 0.95
+sky.material.uniforms['sunPosition'].value.set(0.3, -0.038, -0.95)
+
+
+/**
+ * Fog
+ */
+
+// option 1
+// 2nd param [near]: how far away from the camera does the fog start
+// 3rd param [far]: how far from the camera will the fog fully be opaque
+// the fog will not take sky into the account (we can keep seeing the sky from far away)
+// scene.fog = new THREE.Fog('#ff0000', 10, 13)
+
+// option 2: more realistic approach
+// 2nd param [density]: how fast will the fog become opaque
+scene.fog = new THREE.FogExp2('#04343f', 0.1)
+
 /**
  * Animate
  */
@@ -482,6 +550,8 @@ const timer = new Timer()
 
 let ghost1Radius = 5
 let up = false
+
+
 
 function changeRadiusOfGhost1() {
     if (up) {
@@ -526,6 +596,7 @@ const tick = () => {
     ghost3.position.z = Math.cos(elapsedTime * 0.1) * 7// adding minus will make circle otherwise
     ghost3.position.y = Math.sin(elapsedTime) * Math.sin(elapsedTime * 1.4) * Math.sin(elapsedTime * 4)
 
+    // ghostCameraHelper.update() // this will move camera helper according to the movement of ghost as well
     // Update controls
     controls.update()
 
