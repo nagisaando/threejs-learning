@@ -19,57 +19,61 @@ const scene = new THREE.Scene()
  */
 
 const parameters = {}
-parameters.count = 1000
-parameters.size = 0.02
-
+parameters.count = 100000
+parameters.size = 0.01
+parameters.radius = 5
+parameters.branches = 3
 
 let particles
-gui.add(parameters, 'count')
-    .min(100)
-    .max(10000000)
-    .step(100)
-    .onFinishChange((value) => {
-        particles.geometry.setAttribute('position', createBufferAttribute(value))
-    })
+let particleGeometry
+let particleMaterial
 
-gui.add(parameters, 'size')
-    .min(0.001)
-    .max(0.1)
-    .step(0.001)
-    .onFinishChange((value) => {
-        particles.material.size = value
+const generateGalaxy = () => {
 
-    })
+    // destroying the old galaxy before re-calling this function when parameter is changed through GUI 
+    if (particles !== undefined) {
+        // https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects
+        particleGeometry.dispose() // this will free the memory 
+        particleMaterial.dispose()
+        scene.remove(particles)
+    }
 
-function createBufferAttribute(count) {
-    const positions = new Float32Array(count * 3) // we need three values per vertex
+    const positions = new Float32Array(parameters.count * 3) // we need three values per vertex
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < parameters.count; i++) {
         const positionX = 0
         const positionY = 1
         const positionZ = 2
 
-        const vertex = 3 // 3 elements from array create a vertex for particle
+        const vertex = 3
 
+        const radius = Math.random() * parameters.radius
+        // How to get branch angle 
+        // 1. i % parameters.branches
+        //    use modulo against index. if the "parameters.branches" is 3 (i % 3), it never reaches to 3.
+        //    index[0] % 3 will be 0, index[1] % 3 will be 1, index[2] % 3 will be 2, index[3] % 3 will be 0 and so on
+        //
+        // 2. (i % parameters.branches) / parameters.branches)
+        //    divide the result of i % parameters.branches by parameters.branches, which give a result of the ratio of full circle (assuming full circle is 1)
+        //    (index[0] % 3 branches) / 3 branches = 0, (index[1] % 3 branches) / 3 branches = 0.33, (index[2] % 3 branches) / 3 branches = 0.66, (index[3] % 3 branches) / 3 branches = 0, and so on
+        //
+        // 3. ((i % parameters.branches) / parameters.branches) * (Math.PI * 2)
+        //    we multiply the ratio by full circle (Math.PI * 2) which will give a angle for the circle
+        // 4. assign it using Math.cos(angle) to x and  Math.cos(angle) to y, which will position to the circle angle
 
-        positions[vertex * i + positionX] = (Math.random() - 0.5) * 3
-        positions[vertex * i + positionY] = (Math.random() - 0.5) * 3
-        positions[vertex * i + positionZ] = (Math.random() - 0.5) * 3
+        const branchAngle = ((i % parameters.branches) / parameters.branches) * (Math.PI * 2)
+
+        positions[i * vertex + positionX] = Math.cos(branchAngle) * radius
+        positions[i * vertex + positionY] = 0
+        positions[i * vertex + positionZ] = Math.sin(branchAngle) * radius
     }
 
-    return new THREE.BufferAttribute(positions, 3)
-}
-const generateGalaxy = () => {
+
+    particleGeometry = new THREE.BufferGeometry()
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
 
 
-
-
-
-    const particleGeometry = new THREE.BufferGeometry()
-    particleGeometry.setAttribute('position', createBufferAttribute(parameters.count))
-
-
-    const particleMaterial = new THREE.PointsMaterial()
+    particleMaterial = new THREE.PointsMaterial()
     particleMaterial.size = parameters.size
     particleMaterial.depthWrite = false // disable to store the depth of each particle
     particleMaterial.sizeAttenuation = true // the particle looks smaller when it is far from the camera
@@ -82,14 +86,35 @@ const generateGalaxy = () => {
     )
 
 
-
-
     scene.add(particles)
 }
 
 
 generateGalaxy()
 
+gui.add(parameters, 'count')
+    .min(100)
+    .max(10000000)
+    .step(100)
+    .onFinishChange(generateGalaxy)
+
+gui.add(parameters, 'size')
+    .min(0.001)
+    .max(0.1)
+    .step(0.001)
+    .onFinishChange(generateGalaxy)
+
+gui.add(parameters, 'radius')
+    .min(0.01)
+    .max(20)
+    .step(0.01)
+    .onFinishChange(generateGalaxy)
+
+gui.add(parameters, 'branches')
+    .min(2)
+    .max(20)
+    .step(1)
+    .onFinishChange(generateGalaxy)
 
 /**
  * Sizes
