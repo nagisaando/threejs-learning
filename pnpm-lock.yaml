@@ -1,6 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
+  cannon: ^0.6.2
+  cannon-es: ^0.20.0
+  cannon-es-debugger: ^1.0.0
   eslint: ^9.15.0
   eslint-config-prettier: ^9.1.0
   eslint-plugin-prettier: ^5.2.1
@@ -12,6 +15,9 @@ specifiers:
   vite-plugin-restart: ^0.4.1
 
 dependencies:
+  cannon: 0.6.2
+  cannon-es: 0.20.0
+  cannon-es-debugger: 1.0.0_sndfzqhytr4zk3jujydd6yytbe
   gsap: 3.12.5
   three: 0.170.0
 
@@ -539,6 +545,28 @@ packages:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /cannon-es-debugger/1.0.0_sndfzqhytr4zk3jujydd6yytbe:
+    resolution: {integrity: sha512-sE9lDOBAYFKlh+0w+cvWKwUhJef8HYnUSVPWPL0jD15MAuVRQKno4QYZSGxgOoJkMR3mQqxL4bxys2b3RSWH8g==}
+    peerDependencies:
+      cannon-es: 0.x
+      three: 0.x
+      typescript: '>=3.8'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      cannon-es: 0.20.0
+      three: 0.170.0
+    dev: false
+
+  /cannon-es/0.20.0:
+    resolution: {integrity: sha512-eZhWTZIkFOnMAJOgfXJa9+b3kVlvG+FX4mdkpePev/w/rP5V8NRquGyEozcjPfEoXUlb+p7d9SUcmDSn14prOA==}
+    dev: false
+
+  /cannon/0.6.2:
+    resolution: {integrity: sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==}
+    dev: false
 
   /chalk/4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
