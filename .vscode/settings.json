@@ -9,5 +9,6 @@
         "**/*.tsx",
         "**/*.js",
         "**/*.jsx"
-    ]
+    ],
+    "cSpell.words": ["gltf"]
 }
