@@ -272,9 +272,9 @@ debugObject.reset = () => {
 debugObject.createBox = () => {
     createBox(
         {
-            width: Math.random() * 2,
-            height: Math.random() * 2,
-            depth: Math.random() * 2,
+            width: Math.random(),
+            height: Math.random(),
+            depth: Math.random(),
 
         },
         {
