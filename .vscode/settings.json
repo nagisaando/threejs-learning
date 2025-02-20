@@ -10,5 +10,5 @@
         "**/*.js",
         "**/*.jsx"
     ],
-    "cSpell.words": ["gltf"]
+    "cSpell.words": ["gltf", "raycaster"]
 }
