@@ -3,14 +3,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+// Red Green Blue Exponent Loader where exponent stores the brightness
+// It is the encoding for HDR format
+import { RGBELoader } from 'three/examples/jsm/Addons.js'
+
 
 /**
  * Loaders
  */
 
-const loader = new GLTFLoader()
+const gltfLoader = new GLTFLoader()
+const rgbeLoader = new RGBELoader()
+const cubeTextureLoader = new THREE.CubeTextureLoader()
 
-loader.load('/models/FlightHelmet/glTF/FlightHelmet.gltf', gltf => {
+gltfLoader.load('/models/FlightHelmet/glTF/FlightHelmet.gltf', gltf => {
     console.log(gltf)
     gltf.scene.scale.set(10, 10, 10)
     scene.add(gltf.scene)
@@ -73,22 +79,34 @@ gui.add(scene.environmentRotation, 'y')
 
 
 // LDR cube texture (Low Dynamic Range)
-const textureLoader = new THREE.CubeTextureLoader()
 
-const environmentMap =
-    textureLoader.setPath('/textures/environmentMap/0/')
-        // the order matters
-        .load([
-            'px.png', // px => positive x
-            'nx.png', // nx => negative x
-            'py.png',
-            'ny.png',
-            'pz.png',
-            'nz.png'
-        ])
 
-scene.background = environmentMap
-scene.environment = environmentMap
+// const environmentMap =
+//     cubeTextureLoader.setPath('/textures/environmentMap/0/')
+//         // the order matters
+//         .load([
+//             'px.png', // px => positive x
+//             'nx.png', // nx => negative x
+//             'py.png',
+//             'ny.png',
+//             'pz.png',
+//             'nz.png'
+//         ])
+
+// scene.background = environmentMap
+// scene.environment = environmentMap
+
+// HDR (RGBE) equirectangular
+// compared to LDR solution, it is much heavier to load and render
+// It can be mitigated with lower resolution and blurred background
+// Recommendation is to use only for lightning 
+
+rgbeLoader.load('/textures/environmentMap/lesson24-2/2k.hdr', (environmentMap) => {
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+    scene.background = environmentMap
+    scene.environment = environmentMap
+})
+
 /**
  * Torus Knot
  */
