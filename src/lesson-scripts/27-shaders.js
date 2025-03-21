@@ -60,6 +60,10 @@ import fragmentShader from '../shaders/test/fragment.glsl'
 // - We can add custom post-processing
 
 
+// [GLSL] - OpenGL Shading Language, Close to the C language
+// Shaderific documentation - https://shaderific.com/glsl.html
+// Kronos Group OpenGL reference pages - https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/indexflat.php
+// Book of shaders documentation - https://thebookofshaders.com/
 
 /**
  * Base
@@ -88,7 +92,7 @@ const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
 const material = new THREE.RawShaderMaterial({
     vertexShader,
     fragmentShader,
-    // wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
+    wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
     // // but properties like map, alphaMap, opacity, color etc don't work and we have to write these features inside the shader
 })
 
