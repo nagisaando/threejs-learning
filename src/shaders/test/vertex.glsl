@@ -23,9 +23,16 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix; 
 
 // attribute - the data that changes in every vertex
-// the "position" is being retrieved from "geometry"
+// the "position" is being retrieved from "geometry" (console.log(new THREE.PlaneGeometry(1, 1, 32, 32)))
 // and to use for gl_Position, we have to convert to vec4
 attribute vec3 position; 
+
+
+// this is coming from the custom attribute we added (aRandom => attribute random);
+attribute float aRandom;
+
+// if we want to send a value from vertex shader to fragment shader, we have to declare it in vertex shader
+varying float vRandom;
 
 void main() // called automatically, does not return anything hence, it has a keyword "void"
 {
@@ -39,10 +46,13 @@ void main() // called automatically, does not return anything hence, it has a ke
 
     // this is same as: 
     vec4 modelPosition = modelMatrix * vec4(position, 1.0); // Transform to world space
-    modelPosition.z += sin(modelPosition.x * 10.0) * 0.1; // Apply wave effect in model space
+    // modelPosition.z += sin(modelPosition.x * 10.0) * 0.1; // Apply wave effect in model space
+    modelPosition.z += aRandom * 0.1; // we can get terrain effect
 
     vec4 viewPosition = viewMatrix * modelPosition; // Transform to camera space
     vec4 projectionPosition = projectionMatrix * viewPosition; // Transform to clip space
     gl_Position = projectionPosition; // Set final vertex position
 
+    // we want to send aRandom to fragment shader using vRandom so we assign aRandom to vRandom
+    vRandom = aRandom;
 }

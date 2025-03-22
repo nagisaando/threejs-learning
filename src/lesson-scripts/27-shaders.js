@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import vertexShader from '../shaders/test/vertex.glsl'
-import fragmentShader from '../shaders/test/fragment.glsl'
+import vertexShader from '../shaders/test-2/vertex.glsl'
+import fragmentShader from '../shaders/test-2/fragment.glsl'
 
 // [What is a shader?]
 // - One of the main components of WebGL
@@ -88,11 +88,21 @@ const textureLoader = new THREE.TextureLoader()
 // Geometry
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
 
+
+const count = geometry.attributes.position.count
+const randoms = new Float32Array(count)
+for (let i = 0; i < count; i++) {
+    randoms[i] = Math.random()
+}
+
+geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1))
+
+
 // Material
 const material = new THREE.RawShaderMaterial({
     vertexShader,
     fragmentShader,
-    wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
+    // wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
     // // but properties like map, alphaMap, opacity, color etc don't work and we have to write these features inside the shader
 })
 
