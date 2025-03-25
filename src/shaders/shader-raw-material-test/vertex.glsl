@@ -5,6 +5,11 @@
 // Each matrix will transform the "position" until we get the final clip space coordinates
 // For this case, there are three matrices.
 // uniform => they are the same for all the vertices
+//            - It is useful for having the same shader but with different results
+//            - Being able to tweak values
+//            - It can be used to animate
+//            - It can be used in both vertex and fragment shaders
+
 // each matrix will do a part of the transformation. 
 // To apply a matrix, we multiply it ( projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0))
 // The matrix must have the same size as the coordinate (mat4 for vec4, mat3 for vec3 etc)

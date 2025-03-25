@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import vertexShader from '../shaders/test-2/vertex.glsl'
-import fragmentShader from '../shaders/test-2/fragment.glsl'
+import vertexShader from '../shaders/shader-material-test/vertex.glsl'
+import fragmentShader from '../shaders/shader-material-test/fragment.glsl'
 
 // [What is a shader?]
 // - One of the main components of WebGL
@@ -81,6 +81,7 @@ const scene = new THREE.Scene()
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
+const flagTexture = textureLoader.load('/textures/flag.png')
 
 /**
  * Test mesh
@@ -99,15 +100,57 @@ geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1))
 
 
 // Material
-const material = new THREE.RawShaderMaterial({
+
+// [THREE.RawShaderMaterial]
+
+// const material = new THREE.RawShaderMaterial({
+//     vertexShader,
+//     fragmentShader,
+//     uniforms: {
+//         uTime: {
+//             value: 0
+//         },
+//         uFrequency: {
+//             value: new THREE.Vector2(10, 5)
+//         },
+//         uColor: {
+//             value: new THREE.Color('#129490')
+//         },
+//         uTexture: {
+//             value: flagTexture
+//         }
+//     }
+//     // wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
+//     // // but properties like map, alphaMap, opacity, color etc don't work and we have to write these features inside the shader
+// })
+
+// [THREE.ShaderMaterial]
+const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
+    uniforms: {
+        uTime: {
+            value: 0
+        },
+        uFrequency: {
+            value: new THREE.Vector2(10, 5)
+        },
+        uColor: {
+            value: new THREE.Color('#129490')
+        },
+        uTexture: {
+            value: flagTexture
+        }
+    }
     // wireframe: true // <------ common properties like wireframe, side, transparent, flatShading works but something like 
     // // but properties like map, alphaMap, opacity, color etc don't work and we have to write these features inside the shader
 })
 
+gui.add(material.uniforms.uFrequency.value, 'x', 0, 100, 1)
+gui.add(material.uniforms.uFrequency.value, 'y', 0, 100, 1)
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
+mesh.scale.y = 2 / 3
 scene.add(mesh)
 
 /**
@@ -161,6 +204,7 @@ const clock = new THREE.Clock()
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
 
+    material.uniforms.uTime.value = elapsedTime // DO NOT USE Date.now() cuz the number is too big for shader
     // Update controls
     controls.update()
 
