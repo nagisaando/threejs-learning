@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
-import vertexShader from '../shaders/shader-material-test/vertex.glsl'
-import fragmentShader from '../shaders/shader-material-test/fragment.glsl'
+import vertexShader from '../shaders/lesson-27/shader-material-test/vertex.glsl'
+import fragmentShader from '../shaders/lesson-27/shader-material-test/fragment.glsl'
 
 // [What is a shader?]
 // - One of the main components of WebGL
