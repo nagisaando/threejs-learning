@@ -72,12 +72,62 @@ const material = new THREE.MeshStandardMaterial({
     normalMap: normalTexture
 })
 
+// problem with shadow:
+// to handle shadows, Three.js do renders from the lights point of view called shadow maps
+// when those render occur, all the materials are replaced by another set of materials (MeshDepthMaterial)
+// and these materials don't twist
+// so currently, the model twist but not the shadow
+
+// by placing this plane material to the scene, we can see the shadow of the model is not twisting
+// const plane = new THREE.Mesh(
+//     new THREE.PlaneGeometry(15, 15, 15),
+//     new THREE.MeshStandardMaterial()
+// )
+
+// plane.rotation.y = Math.PI
+// plane.position.y = - 5
+// plane.position.z = 5
+// scene.add(plane)
+
+// solution:
+// We cannot access the depth material easily but we can override it with the property "customDepthMaterial"
+// and tell the Mesh to use the custom material instead of the built-in depth material
+
+const depthMaterial = new THREE.MeshDepthMaterial({
+    // It is a better way of storing the depth by using the r, g, b, and a separately for better precision and Three.js needs it.
+    depthPacking: THREE.RGBADepthPacking
+})
+
+
+// if we want to change the uniform value that will be used inside shader hook
+// we have to declare the uniform outside of the hook so we can freely update it 
+const customUniforms = {
+    uTime: { value: 0 }
+}
 // hook that we can access to shader and modify
 // we have to use the "#include..." to inject our code with a native Javascript "replace(...)" from shader.vertexShader
 // #includes => includes the chunk of the code from another file in .glsl file (something Three.js does not WebGL)
 // before modifying we need to check node_modules/three/src/renderers/shaders/ShaderLib/meshphysical.glsl.js
 // and understand the code
 material.onBeforeCompile = (shader) => {
+    // [twist model] 
+    shader.uniforms.uTime = customUniforms.uTime
+    // we need to put function outside of void main() {}
+    // so we inject function separately from our logic to rotate the model
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <common>",
+        `
+        #include <common>
+
+        uniform float uTime;
+
+        // https://thebookofshaders.com/08/
+        mat2 get2dRotateMatrix(float _angle)
+        {
+            return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+        }
+        `)
+
     shader.vertexShader = shader.vertexShader.replace(
         "#include <begin_vertex>",
         // we will try to twist the model with center basis (y axis)
@@ -85,8 +135,48 @@ material.onBeforeCompile = (shader) => {
         `
         #include <begin_vertex>
 
-        transformed.y += 1.0;
+        float angle = (position.y + uTime) * 0.9;
+        mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+        transformed.xz = rotateMatrix * transformed.xz;
         `)
+
+}
+
+// fix the drop shadow (the shadow that is casted to the another object)
+// by twisting the shadow as well. 
+// core shadow won't reflect the twist which is related to "normal" problem
+// the normal are data associated with the vertices that tell in which direction is the outside to be used for lights, shadows, reflections and stuff like that
+// we did rotate the vertices but not the normals
+// 
+depthMaterial.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = customUniforms.uTime
+
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <common>",
+        `
+        #include <common>
+
+        uniform float uTime;
+
+        // https://thebookofshaders.com/08/
+        mat2 get2dRotateMatrix(float _angle)
+        {
+            return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+        }
+        `)
+
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        `
+        #include <begin_vertex>
+
+        float angle = (position.y + uTime) * 0.9;
+        mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+        transformed.xz = rotateMatrix * transformed.xz;
+        `
+    )
 }
 
 /**
@@ -99,12 +189,25 @@ gltfLoader.load(
         const mesh = gltf.scene.children[0]
         mesh.rotation.y = Math.PI * 0.5
         mesh.material = material
+        mesh.customDepthMaterial = depthMaterial // override the depth material
         scene.add(mesh)
 
         // Update materials
         updateAllMaterials()
     }
 )
+
+
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(15, 15, 15),
+    new THREE.MeshStandardMaterial()
+)
+
+plane.rotation.y = Math.PI
+plane.position.y = - 5
+plane.position.z = 5
+scene.add(plane)
+
 
 /**
  * Lights
@@ -173,6 +276,10 @@ const clock = new THREE.Clock()
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
 
+    // we can not update the uniform in the tick because we can't access it outside
+    //  material.uniforms.uTime.value = elapsedTime  // <----------- this won't work
+
+    customUniforms.uTime.value = elapsedTime; // instead we have to declare the uniform value outside of the shader hook
     // Update controls
     controls.update()
 
