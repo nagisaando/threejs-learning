@@ -109,6 +109,8 @@ const customUniforms = {
 // #includes => includes the chunk of the code from another file in .glsl file (something Three.js does not WebGL)
 // before modifying we need to check node_modules/three/src/renderers/shaders/ShaderLib/meshphysical.glsl.js
 // and understand the code
+
+
 material.onBeforeCompile = (shader) => {
     // [twist model] 
     shader.uniforms.uTime = customUniforms.uTime
@@ -128,6 +130,18 @@ material.onBeforeCompile = (shader) => {
         }
         `)
 
+
+    // we also need to modify "normals" to twist core shadow as well
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <beginnormal_vertex>",
+        `#include <beginnormal_vertex>
+        
+        float angle = (position.y + uTime) * 0.9;
+        mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+        objectNormal.xz = rotateMatrix * objectNormal.xz;
+        `
+    )
     shader.vertexShader = shader.vertexShader.replace(
         "#include <begin_vertex>",
         // we will try to twist the model with center basis (y axis)
@@ -135,20 +149,16 @@ material.onBeforeCompile = (shader) => {
         `
         #include <begin_vertex>
 
-        float angle = (position.y + uTime) * 0.9;
-        mat2 rotateMatrix = get2dRotateMatrix(angle);
-
         transformed.xz = rotateMatrix * transformed.xz;
         `)
 
 }
 
-// fix the drop shadow (the shadow that is casted to the another object)
-// by twisting the shadow as well. 
+// fix the drop shadow (the shadow that is casted to the another object) by twisting the shadow as well. 
 // core shadow won't reflect the twist which is related to "normal" problem
 // the normal are data associated with the vertices that tell in which direction is the outside to be used for lights, shadows, reflections and stuff like that
 // we did rotate the vertices but not the normals
-// 
+// Fix needs to be done in "material" not "depthMaterial"
 depthMaterial.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = customUniforms.uTime
 
