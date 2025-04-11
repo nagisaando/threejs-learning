@@ -92,6 +92,11 @@ gltfLoader.load(
     }
 )
 
+// Perlin texture
+const perlinTexture = textureLoader.load('/textures/perlin.png')
+// since we will make the smoke animation, we have to make the texture repeated
+perlinTexture.wrapS = THREE.RepeatWrapping
+perlinTexture.wrapT = THREE.RepeatWrapping
 /**
  * Smoke
  */
@@ -106,9 +111,16 @@ smokeGeometry.scale(1.5, 6, 1.5)
 const smokeMaterial = new THREE.ShaderMaterial({
     // color: 'cyan', // color is not supported in shader material
     // wireframe: true,
-    side: THREE.DoubleSide,
     vertexShader,
-    fragmentShader
+    fragmentShader,
+    uniforms: {
+        uTime: new THREE.Uniform(0),
+        uPerlinTexture: new THREE.Uniform(perlinTexture) // : same as uPerlinTexture: { value: perlinTexture }
+
+    },
+    side: THREE.DoubleSide,
+    transparent: true
+
 })
 
 const smoke = new THREE.Mesh(smokeGeometry, smokeMaterial)
@@ -121,6 +133,7 @@ const clock = new THREE.Clock()
 
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
+    smokeMaterial.uniforms.uTime.value = elapsedTime
 
     // Update controls
     controls.update()
