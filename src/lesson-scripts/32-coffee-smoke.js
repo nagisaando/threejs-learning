@@ -119,7 +119,12 @@ const smokeMaterial = new THREE.ShaderMaterial({
 
     },
     side: THREE.DoubleSide,
-    transparent: true
+    transparent: true,
+    // problem, when we see it from some angle, 
+    // it seems that the plane is occluding itself
+    // it's because the plane is writing on the depth buffer and will occlude anything behind it including itself
+    // so we have to disable depthWrite
+    depthWrite: false
 
 })
 

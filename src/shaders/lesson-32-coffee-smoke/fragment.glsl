@@ -35,11 +35,23 @@ void main () {
     smoke = smoothstep(0.4, 1.0, smoke); // everything below 0.4 will stay 0, and 1 will stay as 1, smoothstep returns 0 to 1 clamped value, it does not go below 0 or above 1
  
 
+    // fade edges using smoothstep
+    // smoke = 1.0; // this makes smoke fully white and it will be easy to visualize the edge fading
+    // we have to multiply to combine the result
+    // fading the sides horizontally 
+    smoke *= smoothstep(0.0, 0.1, vUv.x); // this will fade only left side
+    smoke *= smoothstep(1.0, 0.9, vUv.x); // or: 1.0 - smoothstep(0.9, 1.0, vUv.x);
+
+    // fading the sides vertically 
+    smoke *= smoothstep(0.0, 0.1, vUv.y);
+    smoke *= smoothstep(1.0, 0.4, vUv.y);
+
     // instead of having the texture on the plane, we will use smoke texture in alpha
     // so where the dark part in the texture becomes transparent 
     // instead of gl_FragColor = vec4(smoke, smoke, smoke, 1.0);
-    gl_FragColor = vec4(1.0, 1.0, 1.0, smoke);
+    gl_FragColor = vec4(0.6, 0.3, 0.2, smoke);
 
+    //  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // with this, we can remove the tweak we added to the fragment, and we can focus on vertex tweak
     //  gl_FragColor = vec4(vUv, 0, 1); // we can test if vUv is successfully passed 
 
     // when three.js compiles the shader, it will check the #include and checks Three.js shaderChunks folder to check if there is something corresponding
@@ -53,3 +65,4 @@ void main () {
     // will convert the colors to comply with the renderer color space setting
     #include <colorspace_fragment>
 }
+
