@@ -78,7 +78,17 @@ gui
  */
 const material = new THREE.ShaderMaterial({
     vertexShader,
-    fragmentShader
+    fragmentShader,
+    uniforms: {
+        uTime: new THREE.Uniform(0)
+    },
+    transparent: true,
+    // since hologram should show the backside, we need to enable it
+    side: THREE.DoubleSide,
+    // the material is writing inside the depth buffer 
+    // and the front side occluding the back side. we can disable depth by depthWrite
+    depthWrite: false
+
 })
 
 /**
@@ -121,6 +131,8 @@ const clock = new THREE.Clock()
 
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
+
+    material.uniforms.uTime.value = elapsedTime;
 
     // Rotate objects
     if (suzanne) {
