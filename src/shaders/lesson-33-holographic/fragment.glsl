@@ -1,4 +1,5 @@
 uniform float uTime;
+uniform vec3 uColor;
 
 varying vec3 vPosition;
 varying vec3 vNormal;
@@ -104,17 +105,26 @@ void main() {
     // gl_FragColor = vec4(1, 1, 1, stripes); 
     // gl_FragColor = vec4(1, 1, 1, fresnel); 
 
+    // falloff effect 
+    // => fade out the alpha on the very edge of the object
+    // we can use the same fresnel but remap it using a smoothstep
+    float falloff = smoothstep(0.8, 0.0, fresnel);
+
+
     // holographic 
     // we can combine the stripes and fresnel by multiplying
     float holographic = stripes * fresnel;
     // add the fresnel on top of it to enforce the fresnel effect
     holographic += fresnel * 1.25;
-    gl_FragColor = vec4(1.0, 1.0, 1.0, holographic);
+    holographic *= falloff;
+
+    gl_FragColor = vec4(uColor.rgb, holographic);
 
 
     // gl_FragColor = vec4(normal, 1); // we can use normal to see if the vNormal is working
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }
+
 
 

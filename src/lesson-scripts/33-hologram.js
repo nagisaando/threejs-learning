@@ -59,6 +59,7 @@ controls.enableDamping = true
 const rendererParameters = {}
 rendererParameters.clearColor = '#1d1f2a'
 
+
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true
@@ -73,21 +74,36 @@ gui
         renderer.setClearColor(rendererParameters.clearColor)
     })
 
+
 /**
  * Material
  */
+const materialParameters = {}
+materialParameters.color = '#70c1ff';
+gui
+    .addColor(materialParameters, 'color')
+    .onChange(() => {
+        material.uniforms.uColor.value.set(materialParameters.color)
+    })
+
+
+
 const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
     uniforms: {
-        uTime: new THREE.Uniform(0)
+        uTime: new THREE.Uniform(0),
+        uColor: new THREE.Uniform(new THREE.Color(materialParameters.color))
     },
     transparent: true,
     // since hologram should show the backside, we need to enable it
     side: THREE.DoubleSide,
     // the material is writing inside the depth buffer 
     // and the front side occluding the back side. we can disable depth by depthWrite
-    depthWrite: false
+    depthWrite: false,
+    // holograms are composed of light, and this blending type 
+    // will add the color to the previous color, making the brighter effect
+    blending: THREE.AdditiveBlending
 
 })
 
