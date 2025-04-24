@@ -23,13 +23,17 @@ const textureLoader = new THREE.TextureLoader()
  */
 const sizes = {
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
+    pixelRatio: Math.min(window.devicePixelRatio, 2)
 }
+sizes.resolution = new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
 
 window.addEventListener('resize', () => {
     // Update sizes
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
+    sizes.pixelRatio = Math.min(window.devicePixelRatio, 2)
+    sizes.resolution.set(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
 
     // Update camera
     camera.aspect = sizes.width / sizes.height
@@ -37,7 +41,7 @@ window.addEventListener('resize', () => {
 
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(sizes.pixelRatio)
 })
 
 /**
@@ -60,13 +64,24 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true
 })
 renderer.setSize(sizes.width, sizes.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.setPixelRatio(sizes.pixelRatio)
 
 /**
  * Fireworks
  */
 
-const createFirework = (count, position) => {
+const textures = [
+    textureLoader.load('/textures/particles/1.png'),
+    textureLoader.load('/textures/particles/2.png'),
+    textureLoader.load('/textures/particles/3.png'),
+    textureLoader.load('/textures/particles/4.png'),
+    textureLoader.load('/textures/particles/5.png'),
+    textureLoader.load('/textures/particles/6.png'),
+    textureLoader.load('/textures/particles/7.png'),
+    textureLoader.load('/textures/particles/11.png')
+]
+
+const createFirework = (count, position, size, texture) => {
     // Geometry
     const positionsArray = new Float32Array(count * 3)
 
@@ -85,9 +100,23 @@ const createFirework = (count, position) => {
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionsArray, 3))
 
 
+    // texture is upside down when we are using gl_PointCoord
+    // this is because THREE.js flips the texture for the uv coordinate. 
+    // but it does not work with gl_PointCoord so we have to flip it back
+    texture.flipY = false
     const material = new THREE.ShaderMaterial({
         vertexShader,
-        fragmentShader
+        fragmentShader,
+        uniforms: {
+            uSize: new THREE.Uniform(size),
+            // uResolutions: is used to change the size of the particle relative to the render height,
+            // and we want to update the uniform on resize event
+            uResolution: new THREE.Uniform(sizes.resolution),
+            uTexture: new THREE.Uniform(texture)
+        },
+        transparent: true,
+        depthWrite: false, // by default, particles hides the back particles because of the depth buffer, so we disable it,
+        blending: THREE.AdditiveBlending // make the particle brighter
     })
 
     const firework = new THREE.Points(
@@ -100,9 +129,12 @@ const createFirework = (count, position) => {
 
 }
 
+
 createFirework(
     100,
-    new THREE.Vector3() // by default returns center
+    new THREE.Vector3(), // by default returns center,
+    0.5,
+    textures[7]
 )
 
 
