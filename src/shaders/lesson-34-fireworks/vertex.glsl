@@ -1,9 +1,9 @@
 attribute float aSize;
+attribute float aTimeMultiplier;
 
 uniform float uSize;
 uniform vec2 uResolution;
 uniform float uProgress;
-
 
 
 // the animation 
@@ -15,17 +15,15 @@ uniform float uProgress;
 // src/assets/lesson-34/animation-phase.png
 
 
+#include ../includes/remap.glsl
 
-// value: the value you want to remap
-// originMin and originMax: the start and end of the original range (the part that you want to transform into another range)
-// destinationMin and destinationMax: the start and end of the destination range (in our case it’s just 0 and 1, but we could have had a different destination range)
-float remap(float value, float originMin, float originMax, float destinationMin, float destinationMax)
-{
-    return destinationMin + (value - originMin) * (destinationMax - destinationMin) / (originMax - originMin);
-}
 
 
 void main() {
+
+    // create a time multiplier as an attribute and make the particles randomly faster
+    // but no more than 3 secs (when the fireworks gets disposed)
+    float progress = uProgress * aTimeMultiplier;
     vec3 newPosition = position;
 
     // [exploding animation]
@@ -34,7 +32,7 @@ void main() {
    
     // remap function doesn’t stop the values from going above or below the limits we provide. and still keeps moving after 0.1
     // To fix that, we can clamp the value right after the remap using clamp:
-    float explodingProgress = remap(uProgress, 0.0, 0.1, 0.0, 1.0); // when the uProgress value reaches 0.0, it starts the animation and it gets 1 when the uProgress is 0.1 (super fast animation)
+    float explodingProgress = remap(progress, 0.0, 0.1, 0.0, 1.0); // when the progress value reaches 0.0, it starts the animation and it gets 1 when the progress is 0.1 (super fast animation)
     explodingProgress = clamp(explodingProgress, 0.0, 1.0);
 
     // animate super fast at the beginning and slow down before reaching 1 (the end of transition) by using pow
@@ -45,19 +43,19 @@ void main() {
 
 
     // [falling animation]
-    float fallingProgress = remap(uProgress, 0.1, 1.0, 0.0, 1.0); // when the uProgress value reaches 0.1, it starts the animation and it gets 1 when the uProgress is 1
+    float fallingProgress = remap(progress, 0.1, 1.0, 0.0, 1.0); // when the progress value reaches 0.1, it starts the animation and it gets 1 when the progress is 1
     fallingProgress = clamp(fallingProgress, 0.0, 1.0); // we clamp the value otherwise animation from remap() won't stop
     fallingProgress = 1.0 - pow(1.0 - fallingProgress, 3.0); // fall fast and slow down as it gets
     newPosition.y -= fallingProgress * 0.2;
 
     // [scaling animation]
-    float sizeOpeningProgress = remap(uProgress, 0.0, 0.125, 0.0, 1.0); // when the uProgress value reaches 0.0, it starts the animation and it gets 1 when the uProgress is 0.125 (going up fast)
-    float sizeClosingProgress = remap(uProgress, 0.125, 1.0,1.0, 0.0); // when the uProgress value reaches 0.125, it starts the animation and it goes down from 1 and gets 0 when the uProgress is 1.0 (going down)
+    float sizeOpeningProgress = remap(progress, 0.0, 0.125, 0.0, 1.0); // when the progress value reaches 0.0, it starts the animation and it gets 1 when the progress is 0.125 (going up fast)
+    float sizeClosingProgress = remap(progress, 0.125, 1.0,1.0, 0.0); // when the progress value reaches 0.125, it starts the animation and it goes down from 1 and gets 0 when the progress is 1.0 (going down)
    
     // Both sizeOpeningProgress and sizeClosingProgress are calculated simultaneously in the shader (GPU processes all vertices in parallel).
-    // However, their activation times are staggered based on uProgress:
-    // sizeOpeningProgress: Active from uProgress = 0.0 to 0.125 (particles grow rapidly).
-    // sizeClosingProgress: Active from uProgress = 0.125 to 1.0 (particles shrink slowly).
+    // However, their activation times are staggered based on progress:
+    // sizeOpeningProgress: Active from progress = 0.0 to 0.125 (particles grow rapidly).
+    // sizeClosingProgress: Active from progress = 0.125 to 1.0 (particles shrink slowly).
     // The min(sizeOpeningProgress, sizeClosingProgress) ensures the final sizeProgress transitions smoothly from growth to shrinkage.
 
 
@@ -73,12 +71,12 @@ void main() {
     // [twinkling]
     // we want particle to twinkle (scale up and down fast using sin())
     // want to start the twinkle a little after the particles start to scale down
-    float twinklingProgress = remap(uProgress, 0.2, 0.8, 0.0, 1.0);
+    float twinklingProgress = remap(progress, 0.2, 0.8, 0.0, 1.0);
     twinklingProgress = clamp(twinklingProgress, 0.0, 1.0);
     
     // since sine goes from -1 to +1, and we would like a value from 0 to 1 using "* 0.5 (make sine value from -0.5 to 0.5)  + 0.5 (make the value 0 to 1)"
-    // multiplying by uProgress * 30.0 make the sine progress more faster
-    float sizeTwinkling = sin(uProgress * 30.0) * 0.5 + 0.5; 
+    // multiplying by progress * 30.0 make the sine progress more faster
+    float sizeTwinkling = sin(progress * 30.0) * 0.5 + 0.5; 
     sizeTwinkling = 1.0 - sizeTwinkling * twinklingProgress;
     
 
@@ -113,6 +111,15 @@ void main() {
     // node_modules/three/src/renderers/shaders/ShaderLib/points.glsl.js
     gl_PointSize *= (1.0 / -viewPosition.z);
 
+
+    // we will make the particle outside of the screen if the gl_PointSize is below 1.0
+    // this is mostly for windows, since some of windows can see the particles even if it's already extremely small
+    if(gl_PointSize < 1.0) {
+        gl_Position = vec4(9999.9);
+    }
+
   
 
 }
+
+

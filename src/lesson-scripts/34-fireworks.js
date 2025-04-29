@@ -1,9 +1,15 @@
+
+// this lesson demonstrate how to animate vertex that is composed of multiple phase animation
+// key: separate the phase of the animation in vertex file
+
+
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import vertexShader from '../shaders/lesson-34-fireworks/vertex.glsl'
 import fragmentShader from '../shaders/lesson-34-fireworks/fragment.glsl'
 import gsap from 'gsap'
+import { Sky } from 'three/addons/objects/Sky.js'
 /**
  * Base
  */
@@ -87,6 +93,8 @@ const createFirework = (count, position, size, texture, radius, color) => {
     const positionsArray = new Float32Array(count * 3)
 
     const sizesArray = new Float32Array(count)
+
+    const timeMultipliersArray = new Float32Array(count)
     for (let i = 0; i < count; i++) {
 
         const vertex = 3
@@ -110,12 +118,14 @@ const createFirework = (count, position, size, texture, radius, color) => {
         positionsArray[i * vertex + z] = position.z
 
         sizesArray[i] = Math.random()
+
+        timeMultipliersArray[i] = 1 + Math.random()
     }
 
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionsArray, 3))
     geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizesArray, 1))
-
+    geometry.setAttribute('aTimeMultiplier', new THREE.BufferAttribute(timeMultipliersArray, 1))
     // texture is upside down when we are using gl_PointCoord
     // this is because THREE.js flips the texture for the uv coordinate. 
     // but it does not work with gl_PointCoord so we have to flip it back
@@ -142,7 +152,14 @@ const createFirework = (count, position, size, texture, radius, color) => {
         material
     )
 
-    // Animate
+
+    firework.position.copy(position)
+
+    scene.add(firework)
+
+
+
+
 
     const destroy = () => {
         // https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects
@@ -153,6 +170,7 @@ const createFirework = (count, position, size, texture, radius, color) => {
         // we don't dispose texture because other fireworks might use it
     }
 
+    // Animate
 
     gsap.to(
         material.uniforms.uProgress,
@@ -162,38 +180,94 @@ const createFirework = (count, position, size, texture, radius, color) => {
     )
 
 
-    firework.position.copy(position)
-    scene.add(firework)
+}
+
+
+
+const createRandomFirework = () => {
+    const count = Math.round(400 + Math.random() * 1000) // random number from 1000 to 1400
+    const position = new THREE.Vector3(
+
+        (Math.random() - 0.5) * 2,
+        Math.random(),
+        (Math.random() - 0.5) * 2
+
+    )
+    const size = 0.1 + Math.random() * 0.1
+    const texture = textures[Math.floor(Math.random() * textures.length)]
+    const radius = 0.5 + Math.random()
+    const color = new THREE.Color()
+    // new THREE.Color().setRGB(Math.random(), Math.random(), Math.random()) 
+    // tends to end up ugly color
+    // by the below implementation, the color is saturated (2nd param), which make the color vivid and third param (light) makes it the color bright
+    // 1st param(hue) takes 0 (red) to 1 (red) and there are all colors between 0 and 1 
+    color.setHSL(Math.random(), 1, 0.7)
+
+    createFirework(count, position, size, texture, radius, color)
 
 
 
 }
 
+createRandomFirework()
 
-createFirework(
-    100,
-    new THREE.Vector3(), // by default returns center,
-    0.5,
-    textures[Math.floor(Math.random() * textures.length)],
-    1,
-    new THREE.Color().setRGB(Math.random(), Math.random(), Math.random())
-
-)
-
-window.addEventListener('click', () => {
-
-    createFirework(
-        100,
-        new THREE.Vector3(), // by default returns center,
-        0.5,
-        textures[Math.floor(Math.random() * textures.length)],
-        1,
-        new THREE.Color().setRGB(Math.random(), Math.random(), Math.random())
-
-    )
+window.addEventListener('click', createRandomFirework)
 
 
-})
+/**
+ * Sky
+ */
+// code is takes from https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html#L38
+// Add Sky
+const sky = new Sky();
+sky.scale.setScalar(450000);
+scene.add(sky);
+
+const sun = new THREE.Vector3();
+
+/// GUI
+
+const skyParameters = {
+    turbidity: 10,
+    rayleigh: 3,
+    mieCoefficient: 0.005,
+    mieDirectionalG: 0.95,
+    elevation: -2.2,
+    azimuth: 100,
+    exposure: renderer.toneMappingExposure
+};
+
+const updateSky = () => {
+
+    const uniforms = sky.material.uniforms;
+    uniforms['turbidity'].value = skyParameters.turbidity;
+    uniforms['rayleigh'].value = skyParameters.rayleigh;
+    uniforms['mieCoefficient'].value = skyParameters.mieCoefficient;
+    uniforms['mieDirectionalG'].value = skyParameters.mieDirectionalG;
+
+    const phi = THREE.MathUtils.degToRad(90 - skyParameters.elevation);
+    const theta = THREE.MathUtils.degToRad(skyParameters.azimuth);
+
+    sun.setFromSphericalCoords(1, phi, theta);
+
+    uniforms['sunPosition'].value.copy(sun);
+
+    renderer.toneMappingExposure = skyParameters.exposure;
+    renderer.render(scene, camera);
+
+}
+
+
+gui.add(skyParameters, 'turbidity', 0.0, 20.0, 0.1).onChange(updateSky);
+gui.add(skyParameters, 'rayleigh', 0.0, 4, 0.001).onChange(updateSky);
+gui.add(skyParameters, 'mieCoefficient', 0.0, 0.1, 0.001).onChange(updateSky);
+gui.add(skyParameters, 'mieDirectionalG', 0.0, 1, 0.001).onChange(updateSky);
+gui.add(skyParameters, 'elevation', -3, 90, 0.01).onChange(updateSky);
+gui.add(skyParameters, 'azimuth', - 180, 180, 0.1).onChange(updateSky);
+gui.add(skyParameters, 'exposure', 0, 1, 0.0001).onChange(updateSky);
+
+updateSky();
+
 /**
  * Animate
  */
