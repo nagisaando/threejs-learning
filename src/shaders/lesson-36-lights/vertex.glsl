@@ -1,5 +1,5 @@
 varying vec3 vNormal;
-
+varying vec3 vPosition;
 void main()
 {
     // Position
@@ -14,4 +14,7 @@ void main()
 
     vec4 modelNormal = modelMatrix * vec4(normal, 0.0); // when we add 0.0, the vector is NOT "homogeneous" amd the translation won't be applied. we don't need to apply translation to normal because the normal is not a position, it's a direction
     vNormal = modelNormal.xyz;
+    vPosition = modelPosition.xyz;
 }
+
+
