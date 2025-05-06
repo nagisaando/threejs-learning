@@ -9,6 +9,14 @@
 
 // we are going to use fragment shader not vertex shader which creates visual artifacts
 
+// [Learning resource]
+// OGLDEV(https://www.youtube.com/watch?v=e-lnyzN2wrM)
+// https://www.youtube.com/watch?v=e-lnyzN2wrM&ab_channel=OGLDEV
+// https://www.youtube.com/watch?v=dJo1Ao9XydM&t=740s&ab_channel=OGLDEV
+// https://www.youtube.com/watch?v=ToCSRyXva5w&ab_channel=OGLDEV
+// https://www.youtube.com/watch?v=MAJqiDll0a8&ab_channel=OGLDEV
+
+
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -148,6 +156,16 @@ directionalLightHelper.material.color.setRGB(0.1, 0.1, 1.0)
 directionalLightHelper.position.set(0, 0, 3.0)
 scene.add(directionalLightHelper)
 
+
+const redPointLightHelper = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 2), new THREE.MeshBasicMaterial())
+redPointLightHelper.material.color.setRGB(1.0, 0.1, 0.1)
+redPointLightHelper.position.set(0, 2.5, 0)
+scene.add(redPointLightHelper)
+
+const yellowPointLightHelper = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 2), new THREE.MeshBasicMaterial())
+yellowPointLightHelper.material.color.setRGB(1.0, 1.1, 0.1)
+yellowPointLightHelper.position.set(2.5, 1.5, 0.0)
+scene.add(yellowPointLightHelper)
 /**
  * Animate
  */
