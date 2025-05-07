@@ -22,8 +22,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import GUI from 'lil-gui'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import shadingVertexShader from '../shaders/lesson-36-lights/vertex.glsl'
-import shadingFragmentShader from '../shaders/lesson-36-lights/fragment.glsl'
+import shadingVertexShader from '../shaders/lesson-35-lights/vertex.glsl'
+import shadingFragmentShader from '../shaders/lesson-35-lights/fragment.glsl'
 
 /**
  * Base
