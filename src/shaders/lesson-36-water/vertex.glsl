@@ -9,6 +9,8 @@ uniform float uSmallWavesSpeed;
 uniform float uSmallIterations;
 
 varying float vElevation;
+varying vec3 vNormal;
+varying vec3 vPosition;
 
 #include ../includes/perlinClassic3D.glsl
 
@@ -38,4 +40,11 @@ void main()
     
     // Varyings
     vElevation = elevation;
+
+    // when we add 0.0, the vector is NOT "homogeneous" amd the translation won't be applied. we don't need to apply translation to normal because the normal is not a position, it's a direction
+    vec4 modelNormal = modelMatrix * vec4(normal, 0.0);
+    vNormal = modelNormal.xyz;
+    
+    vPosition = modelPosition.xyz;
+
 }

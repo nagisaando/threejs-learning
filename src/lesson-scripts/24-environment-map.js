@@ -7,6 +7,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 // It is the encoding for HDR format
 import { GroundedSkybox, RGBELoader } from 'three/examples/jsm/Addons.js'
 
+// how to configure environment map data in polyHaven around 40:00
+// https://threejs-journey.com/lessons/realistic-render#
 
 /**
  * Loaders

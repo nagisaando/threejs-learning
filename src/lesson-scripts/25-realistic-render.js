@@ -4,7 +4,8 @@ import GUI from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-
+// how to configure environment map data in polyHaven around 40:00
+// https://threejs-journey.com/lessons/realistic-render#
 /**
  * Loaders
  */
