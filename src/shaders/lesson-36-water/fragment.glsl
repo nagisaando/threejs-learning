@@ -7,8 +7,7 @@ varying float vElevation;
 varying vec3 vNormal;
 varying vec3 vPosition;
 
-#include ../includes/ambientLight.glsl
-#include ../includes/directionalLight.glsl
+#include ../includes/pointLight.glsl
 
 void main()
 {
@@ -38,20 +37,22 @@ void main()
     // light 
     vec3 light = vec3(0, 0, 0);
 
-    light += directionalLight(
-        vec3(1.0),
-        1.0,
-        normal,
-        vec3(-1.0, 0.5, 0.0),
-        viewDirection,
-        30.0
+    light += pointLight(
+        vec3(1.0),            // Light color
+        10.0,                 // Light intensity,
+        normal,               // Normal
+        vec3(0.0, 0.25, 0.0), // Light position
+        viewDirection,        // View direction
+        30.0,                 // Specular power
+        vPosition,            // Position
+        0.95                  // Decay
     );
 
     color *= light;
     
     // Final color
 
-    // [Problem] 
+    // [Problem with using normal attribute] 
     // normal is facing upwards, resulting the wave color being green
     // and ignoring the shape of the wave
     // src/assets/lesson-36/normal-issue.png
@@ -59,8 +60,11 @@ void main()
     // gl_FragColor = vec4(normal, 1.0);  => rgb(0, 1, 0) => xyz(0, 1, 0)
     // we can not just update the normal attribute which required to do it each frame and cause big performance issue
 
+    // [Solution => neighbors technique]
     // we can fix by using neighbors technique (in the case of grid, and plane is grid)
     // https://threejs-journey.com/lessons/raging-sea-shading-shaders#theory
+    // See the vertex shader's modelPositionA and modelPositionB for the implementation 
+    
     // 1. we ignore the normal attribute sent with the geometry
     // 2. instead, we are going to compute the theoretical position of neighbours to calculate the normal
     // [compute the theoretical position of neighbours to calculate the normal]
@@ -68,6 +72,10 @@ void main()
     // 2. then update the elevation of those neighbours exactly like we did for the current vertex (wave) src/assets/lesson-36/update-elevation.png
     // 3. we calculate a vector going from the vertex to the A (toA), then vector going from the vertex to B (toB) (src/assets/lesson-36/vector-to-neighbour.png)
     // 4. our computed normal should be the vector perpendicular to both toA and toB and we can do so with the function called "cross product" (src/assets/lesson-36/computed-normal.png)
+    // NOTE: in the reference image, toB is positioned in positive Z axes but it is important to put it in NEGATIVE Z AXES!!!
+
+    
+    
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>

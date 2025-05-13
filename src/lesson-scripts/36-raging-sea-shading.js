@@ -23,6 +23,11 @@ const scene = new THREE.Scene()
 // Geometry
 const waterGeometry = new THREE.PlaneGeometry(2, 2, 512, 512)
 
+// [performance optimization]
+// since we are calculating the normal ourselves, remove normal attribute
+waterGeometry.deleteAttribute('normal')
+// same for uv since it is not used
+waterGeometry.deleteAttribute('uv')
 // Colors
 debugObject.depthColor = '#ff4000'
 debugObject.surfaceColor = '#151c37'
@@ -80,6 +85,12 @@ const sizes = {
     height: window.innerHeight
 }
 
+// helper
+const axesHelper = new THREE.AxesHelper()
+axesHelper.position.y += 0.25
+scene.add(axesHelper)
+
+
 window.addEventListener('resize', () => {
     // Update sizes
     sizes.width = window.innerWidth
@@ -114,7 +125,7 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
+renderer.toneMapping = THREE.ACESFilmicToneMapping;// <---- to use tonemapping make sure to have #include <tonemapping_fragment> in fragment shader
 /**
  * Animate
  */
