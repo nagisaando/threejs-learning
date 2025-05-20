@@ -32,7 +32,7 @@ void main () {
     // we need to "remap" the value so that it goes from 0 when it should be 0.4, to 1 when it should be 1 with a smooth transition (smoothstep function in GLSL)
     // we want to make it transparent for 0 (black), make it smoke effect
     // src/assets/lesson-32/remap.png
-    smoke = smoothstep(0.4, 1.0, smoke); // everything below 0.4 will stay 0, and 1 will stay as 1, smoothstep returns 0 to 1 clamped value, it does not go below 0 or above 1
+    smoke = (0.4, 1.0, smoke); // everything below 0.4 will stay 0, and 1 will stay as 1, smoothstep returns 0 to 1 clamped value, it does not go below 0 or above 1
  
 
     // fade edges using smoothstep
