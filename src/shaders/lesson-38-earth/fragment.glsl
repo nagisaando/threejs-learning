@@ -5,14 +5,12 @@ varying vec3 vPosition;
 uniform sampler2D uDayTexture;
 uniform sampler2D uNightTexture;
 uniform sampler2D uSpecularCloudsTexture;
+uniform vec3 uSunDirection;
 void main()
 {
     vec3 viewDirection = normalize(vPosition - cameraPosition);
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
-
-    // Sun orientation: 
-    vec3 uSunDirection = vec3(0, 0, 2.0);
 
     // we will check the orientation of sun against the normal of the earth
     // src/assets/lesson-38/sun-direction.png
