@@ -25,6 +25,26 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 // Loaders
+
+
+/**
+ * Earth
+ */
+
+const earthParameters = {}
+earthParameters.atmosphereDayColor = '#00aaff'
+earthParameters.atmosphereTwilightColor = '#ff6600'
+
+gui.addColor(earthParameters, 'atmosphereDayColor')
+    .onChange(() => {
+        earthMaterial.uniforms.uAtmosphereDayColor.value.set(earthParameters.atmosphereDayColor)
+    })
+
+gui.addColor(earthParameters, 'atmosphereTwilightColor')
+    .onChange(() => {
+        earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(earthParameters.atmosphereTwilightColor)
+    })
+// Texture
 // texture link: https://www.solarsystemscope.com/textures/
 // - day.jpg and the night.jpg files are two separated textures. We are going to send both to the shader and mix between them according to the orientation of the sun. 
 // They have been encoded in sRGB.
@@ -36,6 +56,11 @@ earthDayTexture.colorSpace = THREE.SRGBColorSpace
 
 const earthNightTexture = textureLoader.load('/textures/earth/night.jpg')
 earthNightTexture.colorSpace = THREE.SRGBColorSpace
+
+
+// - specularClouds.jpg contains the specular texture (where it’s reflective) into the red channel and the clouds texture into the green channel.
+// Combining data like this reduces the amount of memory we allocate to the GPU.The texture is encoded in linear.
+const earthSpecularCloudsTexture = textureLoader.load('/textures/earth/specularClouds.jpg')
 
 
 // Anisotropy
@@ -57,13 +82,6 @@ earthNightTexture.anisotropy = 8
 earthSpecularCloudsTexture.anisotropy = 8
 
 
-
-// - specularClouds.jpg contains the specular texture (where it’s reflective) into the red channel and the clouds texture into the green channel.
-// Combining data like this reduces the amount of memory we allocate to the GPU.The texture is encoded in linear.
-const earthSpecularCloudsTexture = textureLoader.load('static/textures/earth/specularClouds.jpg')
-/**
- * Earth
- */
 // Mesh
 const earthGeometry = new THREE.SphereGeometry(2, 64, 64)
 const earthMaterial = new THREE.ShaderMaterial({
@@ -74,7 +92,9 @@ const earthMaterial = new THREE.ShaderMaterial({
         uDayTexture: new THREE.Uniform(earthDayTexture),
         uNightTexture: new THREE.Uniform(earthNightTexture),
         uSpecularCloudsTexture: new THREE.Uniform(earthSpecularCloudsTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3())
+        uSunDirection: new THREE.Uniform(new THREE.Vector3()),
+        uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(earthParameters.atmosphereDayColor)),
+        uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(earthParameters.atmosphereTwilightColor))
     }
 })
 
@@ -108,7 +128,6 @@ const updateSun = () => {
 
     // we are converting spherical coordinate to vec3
     sunDirection.setFromSpherical(sunSpherical)
-    console.log(sunDirection)
     debugSun.position.copy(sunDirection)
     // since sunSpherical's radius is 1 and the earth radius is 2,
     // debugSun shows inside the earth. so instead we multiply the position and show it far away from the earth (it keep the same direction)
