@@ -77,10 +77,50 @@ void main()
 
     color = cloud;
 
+    // Atmosphere 
+    // One beautiful aspect of planets is the atmosphere and how the light passes through it.
+    // This effect is more pronounced at a narrow angle because we see more of the atmosphere:
+    // src/assets/lesson-38/atmosphere-angle.png
+
+    // It looks blueish on the day side, it’s invisible on the night side and it looks redish in the twilight, which is where the day side meets the night side.
+    // src/assets/lesson-38/atmosphere-color.png
+
+    // Fresnel for Atmosphere 
+    // we need fresnel to make the atmosphere more visible on the edges of the planet.
+    // We can do that the normal and view angle
+    // we want a value to be 1.0 when the view angle is perpendicular to normal and
+    // 0.0 when the view angle is aligned with the normal
+
+    // to compare viewDirection(view angle) with normal(normal), we are going to use a dot product
+    // considering two vectors of the same length: 
+    // - If they are in the same direction, we get 1
+    // - If they they are perpendicular, we get 0
+    // - If they are opposite, we get -1
+    // - In between values are interpolated (e.g. -0.5)
+    
+    // keep in mind, to get the fresnel effect, we want 1 if they are perpendicular and 0 if they are the opposite direction
+    // so we will add 1 so we can get the appropriate value to get fresnel effect
+
+    float fresnel = dot(viewDirection, normal) + 1.0;
+
+    // apply power to the fresnel to make it sharper
+    fresnel = pow(fresnel, 2.0);
+
+
+    float atmosphereDayMix = smoothstep(-0.5, 1.0, sunOrientation);
+    vec3 atmosphereColor = mix(uAtmosphereTwilightColor, uAtmosphereDayColor, atmosphereDayMix);
+    
+    // with color = mix(color, atmosphereColor, fresnel * atmosphereDayMix);, 
+    // the atmosphere is way too visible on the night side of the Earth.
+    // we can multiply fresnel by atomosphereDayMix which lower the value on the night side 
+    color = mix(color, atmosphereColor, fresnel * atmosphereDayMix);
+
+
     // Final color
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
 }
+
 
 
