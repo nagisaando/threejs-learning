@@ -112,10 +112,56 @@ void main()
     
     // with color = mix(color, atmosphereColor, fresnel * atmosphereDayMix);, 
     // the atmosphere is way too visible on the night side of the Earth.
-    // we can multiply fresnel by atomosphereDayMix which lower the value on the night side 
+    // we can multiply fresnel by atmosphereDayMix which lower the value on the night side 
     color = mix(color, atmosphereColor, fresnel * atmosphereDayMix);
 
+    // Specular (the reflection of the sun) 
+    // src/assets/lesson-38/specular.png
 
+
+    // specular (https://threejs-journey.com/lessons/lights-shading-shaders#specular)
+    // We need the light reflection. the light is illuminating the surface, but in real life we can also see the light itself reflecting on the surface of the object and we call this “specular”.
+    // In order to calculate the specular, we are going to calculate the reflecting vector of the light on the surface and compare it to the view vector.
+    // The more they are aligned, the more specular: src/assets/lesson-35/specular.png
+
+    // currently lightDirection is pointing from the object to light but light direction should point from light to object 
+    // so we invert it by adding "-" before lightDirection
+    vec3 lightReflection = reflect(-uSunDirection, normal);
+
+
+
+    // we can check how specular looks
+    // float specular = dot(lightReflection, viewDirection);
+    // color = vec3(specular);
+    // we can see the the light reflection where that is opposite to where the light is point to
+
+    // this is because how dot works, if they are the same direction, we get 1, and if it's opposite, we get -1
+    // since the value we want and the value the dot is returning is opposite so we will invert it using "-"
+    float specular = -dot(lightReflection, viewDirection);
+
+    // since dot can go -1 to 1, and we want 0 to be minimum value, 
+    // we clamp it using max(). Otherwise when we do power by pow() it will messes up 
+    // https://www.desmos.com/calculator/ix22rvaly0 
+    specular = max(specular, 0.0);
+    specular = pow(specular, 32.0);
+
+
+    // Multiply the specular by the specular map which is available in the r channel of specularCloudColor
+    // which will prevent reflection if the light is pointing to the continents
+    specular *= specularCloudColor.r;
+
+ 
+
+    // if we only add specular, which is white, if we see the earth from back side,
+    // the light is too bright and overrides the color of atmosphere (red-ish color)
+    // color += specular;
+
+    // We want the specular to have the color of atmosphereColor, 
+    // but only when that specular is on the edges. we can mix the color using the fresnel.
+    vec3 specularColor = mix(vec3(1.0), atmosphereColor, fresnel);
+    
+    // apply specular with specularColor which take atmosphere color into consideration
+    color += specular * specularColor;
     // Final color
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
