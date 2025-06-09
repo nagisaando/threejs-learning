@@ -15,6 +15,56 @@ const scene = new THREE.Scene()
 // Loaders
 const textureLoader = new THREE.TextureLoader()
 
+
+/**
+ * Displacement
+ */
+// https://simon.html5.org/dump/html5-canvas-cheat-sheet.html
+
+const displacement = {}
+
+displacement.canvas = document.createElement('canvas')
+displacement.canvas.width = 128 // 128 is the same number of the particles on the screen from particlesGeometry
+displacement.canvas.height = 128
+
+displacement.canvas.style.position = 'fixed'
+displacement.canvas.style.top = 0
+displacement.canvas.style.left = 0
+displacement.canvas.style.width = '512px'
+displacement.canvas.style.height = '512px'
+
+displacement.context = displacement.canvas.getContext('2d')
+displacement.context.fillStyle = 'black'
+displacement.context.fillRect(0, 0, displacement.canvas.width, displacement.canvas.height)
+
+document.body.append(displacement.canvas)
+
+displacement.glowImage = new Image()
+displacement.glowImage.src = '/textures/lesson-39/glow.png'
+
+window.setTimeout(() => {
+    displacement.context.drawImage(displacement.glowImage, 20, 20, 32, 32)
+
+}, 1000)
+
+
+
+
+// interactive plane 
+
+// To draw that glow image on 2d canvas (displacement.canvas) on each frame relative to the cursor on the particles, 
+// we are going to use a [Raycaster] to do so.
+
+// But, the Raycaster won’t work with the particles because it requires a geometry made out of vertices and triangles. (and we are using particle new THREE.Points())
+// To fix that, we are going to create a plane at the exact same position as the particles, make it invisible, and use the Raycaster on that plane.
+displacement.interactivePlane =
+    new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshBasicMaterial({
+            color: 'red'
+        }))
+
+scene.add(displacement.interactivePlane)
 /**
  * Sizes
  */
@@ -64,6 +114,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setClearColor('#181818')
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(sizes.pixelRatio)
+
+
 
 /**
  * Particles
