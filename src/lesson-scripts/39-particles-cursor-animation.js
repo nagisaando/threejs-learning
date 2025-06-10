@@ -48,6 +48,27 @@ window.setTimeout(() => {
 }, 1000)
 
 
+// Raycaster
+displacement.raycaster = new THREE.Raycaster()
+
+// Coordinates for Raycaster:
+// with new THREE.Vector2(), the cursor's default position will be at the center of the picture, 
+// and animation for particles occurs without user interacting actively. 
+// so we set 9999 so that we can "simulate" the cursor is really far
+displacement.screenCursor = new THREE.Vector2(9999, 9999)
+
+// Coordinates for canvas:
+displacement.canvasCursor = new THREE.Vector2(9999, 9999)
+
+
+
+
+window.addEventListener('pointermove', (e) => {
+    // convert the screen coordinates (which are in pixels) to clip space coordinates (from -1 to +1):
+    displacement.screenCursor.x = e.clientX / sizes.width * 2 - 1
+    displacement.screenCursor.y = -(e.clientY / sizes.height * 2 - 1) // we want y coordinate to be 1 on top and -1 in the bottom
+})
+
 
 
 // interactive plane 
@@ -140,6 +161,27 @@ scene.add(particles)
 const tick = () => {
     // Update controls
     controls.update()
+
+
+    /**
+     * Raycaster
+     */
+
+    displacement.raycaster.setFromCamera(displacement.screenCursor, camera)
+    const intersections = displacement.raycaster.intersectObject(displacement.interactivePlane)
+
+    if (intersections.length) {
+        const uv = intersections[0].uv
+        displacement.canvasCursor.x = uv.x * displacement.canvas.width
+        displacement.canvasCursor.y = (1 - uv.y) * displacement.canvas.height
+    }
+
+    displacement.context.drawImage(displacement.glowImage, displacement.canvasCursor.x, displacement.canvasCursor.y, 32, 32)
+
+
+    /**
+     * Displacement
+     */
 
     // Render
     renderer.render(scene, camera)
