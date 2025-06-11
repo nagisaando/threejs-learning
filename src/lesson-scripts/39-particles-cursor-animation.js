@@ -30,8 +30,8 @@ displacement.canvas.height = 128
 displacement.canvas.style.position = 'fixed'
 displacement.canvas.style.top = 0
 displacement.canvas.style.left = 0
-displacement.canvas.style.width = '512px'
-displacement.canvas.style.height = '512px'
+displacement.canvas.style.width = '256px'
+displacement.canvas.style.height = '256px'
 
 displacement.context = displacement.canvas.getContext('2d')
 displacement.context.fillStyle = 'black'
@@ -41,11 +41,6 @@ document.body.append(displacement.canvas)
 
 displacement.glowImage = new Image()
 displacement.glowImage.src = '/textures/lesson-39/glow.png'
-
-window.setTimeout(() => {
-    displacement.context.drawImage(displacement.glowImage, 20, 20, 32, 32)
-
-}, 1000)
 
 
 // Raycaster
@@ -60,6 +55,12 @@ displacement.screenCursor = new THREE.Vector2(9999, 9999)
 // Coordinates for canvas:
 displacement.canvasCursor = new THREE.Vector2(9999, 9999)
 
+// Displacement as a texture
+// To send displacement canvas to our particle shader.
+// We have to convert it to a Three.js texture, using the CanvasTexture. https://threejs.org/docs/#api/en/textures/CanvasTexture
+// Canvases are perfectly compatible with Three.js textures and the CanvasTexture is actually nothing but a Texture updating itself as soon as it is instantiated.
+// and we need to update the texture after updating the canvas on tick()
+displacement.texture = new THREE.CanvasTexture(displacement.canvas)
 
 
 
@@ -84,7 +85,7 @@ displacement.interactivePlane =
         new THREE.MeshBasicMaterial({
             color: 'red'
         }))
-
+displacement.interactivePlane.visible = false
 scene.add(displacement.interactivePlane)
 /**
  * Sizes
@@ -149,7 +150,8 @@ const particlesMaterial = new THREE.ShaderMaterial({
     uniforms:
     {
         uResolution: new THREE.Uniform(new THREE.Vector2(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)),
-        uPictureTexture: new THREE.Uniform(textureLoader.load('/textures/lesson-39/picture-4.png'))
+        uPictureTexture: new THREE.Uniform(textureLoader.load('/textures/lesson-39/picture-4.png')),
+        uDisplacementTexture: new THREE.Uniform(displacement.texture)
     }
 })
 const particles = new THREE.Points(particlesGeometry, particlesMaterial)
@@ -173,15 +175,42 @@ const tick = () => {
     if (intersections.length) {
         const uv = intersections[0].uv
         displacement.canvasCursor.x = uv.x * displacement.canvas.width
+        // uv coordinates are positive when going up while canvas coordinates are positive when going down
+        // so we have to adjust it: (1 - uv.y), so cursor movement on uv matches with canvas
+        // src/assets/lessom-39/uv-canvas-coordinate.png
         displacement.canvasCursor.y = (1 - uv.y) * displacement.canvas.height
     }
-
-    displacement.context.drawImage(displacement.glowImage, displacement.canvasCursor.x, displacement.canvasCursor.y, 32, 32)
-
 
     /**
      * Displacement
      */
+
+    // fade out
+    // To fade it out, we are going to fill the whole canvas with a black rectangle as we did at the beginning, but that black rectangle will have a low opacity so that it doesn’t occlude everything in its draw.
+    displacement.context.globalCompositeOperation = 'source-over' // since we are using  displacement.context.globalCompositeOperation = 'lighten in the code below, before we fill the black rectangle, we have to revert globalCompositeOperation back to default 'source-over
+    displacement.context.globalAlpha = 0.02; // we will fade the glow image out
+    displacement.context.fillRect(0, 0, displacement.canvas.width, displacement.canvas.height)
+
+    // draw glow 
+    // NOTE: As you can see, the trail never completely disappears. This is a common issue with 2D canvas where the precision of the color makes it hard to introduce small variations.
+    displacement.context.globalCompositeOperation = 'lighten' // this is to accumulate color, a bit like the AdditiveBlending from Three.js. 
+    displacement.context.globalAlpha = 1 // we want the latest glow to be completely visible, so we have to revert the globalAlpha to 1
+    const glowSize = displacement.canvas.width * 0.25
+    displacement.context.drawImage(
+        displacement.glowImage,
+        // since the glow image is drawn where the cursor is top, left, src/assets/lessom-39/cursor-and-image.png
+        // not where the cursor is center src/assets/lessom-39/cursor-and-image-correct.png
+        // so we need to adjust by subtracting glowSize * 0.5
+        displacement.canvasCursor.x - glowSize * 0.5,
+        displacement.canvasCursor.y - glowSize * 0.5,
+        glowSize,
+        glowSize
+    )
+
+
+    // Texture
+    // we need to update the texture after updating the canvas.
+    displacement.texture.needsUpdate = true
 
     // Render
     renderer.render(scene, camera)

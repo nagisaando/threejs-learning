@@ -1,5 +1,6 @@
 uniform vec2 uResolution;
 uniform sampler2D uPictureTexture;
+uniform sampler2D uDisplacementTexture;
 
 varying vec3 vColor;
 void main()
